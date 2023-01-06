@@ -8,16 +8,23 @@ pipeline {
     }
 
     stages{
+        stage('Checkout') {
+            steps {
+                sh "git fetch --all"
+            }
+        }
+
         stage('Version') {
             steps {
                 script {
                     env.VERSION = sh(
                         returnStdout: true,
-                        script: 'git fetch --all --tags | git tag --sort=-v:refname --list | grep -E \'^v(0|[0-9]+)\\.(0|[0-9]+)\\.(0|[0-9]+)\$\' | head -n 1'
+                        script: 'git tag --sort=-v:refname --list | grep -E \'^v(0|[0-9]+)\\.(0|[0-9]+)\\.(0|[0-9]+)\$\' | head -n 1'
                     ).trim()
+                    env.TAG = "${VERSION}-ci.${GIT_COMMIT.substring(0,8)}"
                 }
-
-                echo "${VERSION}"
+                sh "git tag ${TAG}"
+                sh "git push origin ${TAG}"
             }
         }
 
@@ -35,7 +42,7 @@ pipeline {
 
         stage('Deploy (Beta)') {
             when {
-                branch "release/beta"
+                branch "release"
             }
 
             steps {
