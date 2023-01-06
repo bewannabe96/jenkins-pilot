@@ -5,8 +5,10 @@ pipeline {
         AWS_ACCOUNT_ID      = 742627718059
         ECR_REGION          = 'ap-northeast-2'
 
+        VERSION             = 'v0.1.0'
+
         DOCKER_IMAGE        = 'test'
-        DOCKER_TAG          = "${BRANCH_NAME.replace("release/","")}-${GIT_COMMIT}"
+        DOCKER_TAG          = "${VERSION}-ci.${GIT_COMMIT}"
 
         DOCKER_IMAGE_REPO   = "${AWS_ACCOUNT_ID}.dkr.ecr.${ECR_REGION}.amazonaws.com/${DOCKER_IMAGE}:${DOCKER_TAG}"
     }
