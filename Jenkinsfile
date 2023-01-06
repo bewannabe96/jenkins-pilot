@@ -15,7 +15,8 @@ pipeline {
         stage('Versioning') {
             steps {
                 script {
-                    env.VERSION_TAG = sh("git describe --tags --abbrev=0 master")
+                    sh "printenv"
+                    // env.VERSION_TAG = sh("git tag --list '^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$' | tail -n 1")
                 }
                 echo "${VERSION_TAG}"
             }
