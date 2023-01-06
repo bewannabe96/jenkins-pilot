@@ -1,7 +1,5 @@
 pipeline {
-    agent {
-        label 'ec2_agent_node'
-    }
+    agent any
 
     environment {
         AWS_ACCOUNT_ID      = 742627718059
