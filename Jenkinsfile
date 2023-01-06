@@ -5,7 +5,7 @@ pipeline {
         AWS_ACCOUNT_ID      = 742627718059
         ECR_REGION          = 'ap-northeast-2'
 
-        VERSION             = "${sh(returnStdout:true,script:'git tag --sort=-v:refname --list | grep -E '^v(0|[0-9]+)\.(0|[0-9]+)\.(0|[0-9]+)$' | head -n 1')}"
+        VERSION             = "${sh(returnStdout:true,script:'git tag --sort=-v:refname --list | grep -E \'^v(0|[0-9]+)\\.(0|[0-9]+)\\.(0|[0-9]+)$\' | head -n 1')}"
 
         DOCKER_IMAGE        = 'test'
         DOCKER_TAG          = "${VERSION}-ci.${GIT_COMMIT}"
