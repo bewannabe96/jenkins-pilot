@@ -16,11 +16,8 @@ pipeline {
     stages{
         stage('Versioning') {
             steps {
-                script {
-                    sh "git tag --sort=-v:refname --list | grep -E \'^v(0|[0-9]+)\\.(0|[0-9]+)\\.(0|[0-9]+)$\' | head -n 1"
-                    sh "printenv"
-                }
-                echo "${VERSION}"
+                sh "git tag --sort=-v:refname --list | grep -E \'^v(0|[0-9]+)\\.(0|[0-9]+)\\.(0|[0-9]+)$\' | head -n 1"
+                sh "printenv"
             }
         }
 
