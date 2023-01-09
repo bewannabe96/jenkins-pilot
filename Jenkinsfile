@@ -132,8 +132,8 @@ pipeline {
                 sh "git merge --no-ff ${MERGE_BRANCH} -m 'RELEASE'"
                 sh "git push origin master"
 
-                sh "git tag ${RELEASE_VERSION}"
-                sh "git push origin ${RELEASE_VERSION}"
+                sh "git tag v${RELEASE_VERSION}"
+                sh "git push origin v${RELEASE_VERSION}"
             }
         }
     }
