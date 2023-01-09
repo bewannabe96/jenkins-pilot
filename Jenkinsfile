@@ -21,7 +21,6 @@ pipeline {
                         returnStdout: true,
                         script: 'git tag --sort=-v:refname --list | grep -E \'^v(0|[0-9]+)\\.(0|[0-9]+)\\.(0|[0-9]+)\$\' | head -n 1'
                     ).trim()
-
                     env.CI_SHORT_HASH = sh(
                         returnStdout: true,
                         script: 'git rev-parse --short HEAD'
@@ -52,25 +51,15 @@ pipeline {
             }
         }
 
-        stage('Deploy (Beta)') {
-            when {
-                branch "develop"
-            }
-
-            steps {
-                echo "Deploying beta..."
-            }
-        }
-
         stage('Stage') {
-            when {
-                branch "develop"
-            }
-
             steps {
-                sh "git checkout release"
-                sh "git merge --no-ff ${CI_TAG} -m 'STAGED'"
-                sh "git push origin release"
+                script {
+                    if (env.BRANCH_NAME == 'develop') {
+                        sh "git checkout release"
+                        sh "git merge --no-ff ${CI_TAG} -m 'STAGED'"
+                        sh "git push origin release"
+                    }
+                }
 
                 script {
                     env.RC_SHORT_HASH = sh(
@@ -85,10 +74,30 @@ pipeline {
             }
         }
 
+        stage('Deploy - Beta') {
+            when {
+                branch 'develop'
+            }
+
+            steps {
+                echo "TODO"
+            }
+        }
+
+        stage('Approve') {
+            steps {
+                input message: "Do you want to release ${RC_TAG}?", ok: "Release"
+            }
+        }
+
+        stage('Deploy - Prod') {
+            steps {
+                echo "Deploying beta..."
+            }
+        }
+
         stage('Release') {
             steps {
-                input message: 'Do you want to release the latest stable build?', ok: 'Release'
-
                 echo "Releasing..."
             }
         }
