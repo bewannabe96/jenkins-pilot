@@ -37,7 +37,6 @@ pipeline {
 
                 sh "git tag ${CI_TAG}"
                 sh "git push origin ${CI_TAG}"
-                echo "${CI_TAG}"
             }
 
         }
@@ -80,7 +79,6 @@ pipeline {
 
                 sh "git tag ${RC_TAG}"
                 sh "git push origin ${RC_TAG}"
-                echo "${RC_TAG}"
             }
         }
 
