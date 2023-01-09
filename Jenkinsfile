@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         AWS_ACCOUNT_ID      = 742627718059
-        ECR_REGION          = 'ap-northeast-2'
+        ECR_REGION          = "ap-northeast-2"
         DOCKER_IMAGE        = "test"
     }
 
@@ -17,14 +17,17 @@ pipeline {
         stage('Version') {
             steps {
                 script {
-                    env.VERSION = sh(
+                    env.LATEST_VERSION = sh(
                         returnStdout: true,
                         script: 'git tag --sort=-v:refname --list | grep -E \'^v(0|[0-9]+)\\.(0|[0-9]+)\\.(0|[0-9]+)\$\' | head -n 1'
                     ).trim()
-                    env.TAG = "${VERSION}-ci.${GIT_COMMIT.substring(0,8)}"
+                    env.LATEST_VERSION="${VERSION}"
+
+                    env.CI_TAG = "${VERSION}-ci.${GIT_COMMIT.substring(0,8)}"
+                    env.RC_TAG = "${VERSION}-rc.${GIT_COMMIT.substring(0,8)}"
                 }
-                sh "git tag ${TAG}"
-                sh "git push origin ${TAG}"
+                sh "git tag ${CI_TAG}"
+                sh "git push origin ${CI_TAG}"
             }
         }
 
@@ -35,18 +38,44 @@ pipeline {
                     env.DOCKER_IMAGE_REPO = "${AWS_ACCOUNT_ID}.dkr.ecr.${ECR_REGION}.amazonaws.com/${DOCKER_IMAGE}:${DOCKER_TAG}"
                 }
 
-                sh "docker build -t ${DOCKER_IMAGE} ."
-                sh "docker tag ${DOCKER_IMAGE} ${DOCKER_IMAGE_REPO}"
+                echo "Building..."
+                // sh "docker build -t ${DOCKER_IMAGE} ."
+                // sh "docker tag ${DOCKER_IMAGE} ${DOCKER_IMAGE_REPO}"
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo "Testing..."
             }
         }
 
         stage('Deploy (Beta)') {
             when {
-                branch "release"
+                branch "develop"
             }
 
             steps {
                 echo "Deploying beta..."
+            }
+        }
+
+        stage('Stage') {
+            when {
+                branch "develop"
+            }
+
+            steps {
+                sh "git checkout release"
+                sh "git merge --no-ff develop -m ${RC_TAG}"
+            }
+        }
+
+        stage('Release') {
+            steps {
+                input message: 'Do you want to release the latest stable build?', ok: 'Release'
+
+                echo "Releasing..."
             }
         }
     }
