@@ -21,10 +21,9 @@ pipeline {
                         returnStdout: true,
                         script: 'git tag --sort=-v:refname --list | grep -E \'^v(0|[0-9]+)\\.(0|[0-9]+)\\.(0|[0-9]+)\$\' | head -n 1'
                     ).trim()
-                    env.LATEST_VERSION="${VERSION}"
 
-                    env.CI_TAG = "${VERSION}-ci.${GIT_COMMIT.substring(0,8)}"
-                    env.RC_TAG = "${VERSION}-rc.${GIT_COMMIT.substring(0,8)}"
+                    env.CI_TAG = "${LATEST_VERSION}-ci.${GIT_COMMIT.substring(0,8)}"
+                    env.RC_TAG = "${LATEST_VERSION}-rc.${GIT_COMMIT.substring(0,8)}"
                 }
                 sh "git tag ${CI_TAG}"
                 sh "git push origin ${CI_TAG}"
@@ -34,7 +33,7 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    env.DOCKER_TAG = "${VERSION}-ci.${GIT_COMMIT.substring(0,8)}"
+                    env.DOCKER_TAG = "${LATEST_VERSION}-ci.${GIT_COMMIT.substring(0,8)}"
                     env.DOCKER_IMAGE_REPO = "${AWS_ACCOUNT_ID}.dkr.ecr.${ECR_REGION}.amazonaws.com/${DOCKER_IMAGE}:${DOCKER_TAG}"
                 }
 
