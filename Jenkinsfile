@@ -4,7 +4,7 @@ pipeline {
     environment {
         AWS_ACCOUNT_ID      = 742627718059
         ECR_REGION          = "ap-northeast-2"
-        DOCKER_IMAGE        = "test"
+        DOCKER_IMAGE_REPO   = "test"
     }
 
     stages{
@@ -50,11 +50,11 @@ pipeline {
             steps {
                 script {
                     env.DOCKER_TAG = "${TAG}"
-                    env.DOCKER_IMAGE_REPO = "${AWS_ACCOUNT_ID}.dkr.ecr.${ECR_REGION}.amazonaws.com/${DOCKER_IMAGE}:${DOCKER_TAG}"
+                    env.DOCKER_IMAGE_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${ECR_REGION}.amazonaws.com/${DOCKER_IMAGE_REPO}:${DOCKER_TAG}"
                 }
 
-                // sh "docker build -t ${DOCKER_IMAGE} ."
-                // sh "docker tag ${DOCKER_IMAGE} ${DOCKER_IMAGE_REPO}"
+                // sh "docker build -t ${DOCKER_IMAGE_REPO} ."
+                // sh "docker tag ${DOCKER_IMAGE_REPO} ${DOCKER_IMAGE_URI}"
             }
         }
 
