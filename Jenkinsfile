@@ -26,7 +26,7 @@ pipeline {
                         returnStdout: true,
                         script: 'git rev-parse --short HEAD'
                     ).trim()
-                    env.CI_TAG = "${LATEST_VERSION}-ci.${SHORT_HASH}"
+                    env.CI_TAG = "${LATEST_VERSION}-ci.${CI_SHORT_HASH}"
                 }
 
                 sh "git tag ${CI_TAG}"
