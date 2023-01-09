@@ -21,20 +21,6 @@ pipeline {
                         returnStdout: true,
                         script: 'git tag --sort=-v:refname --list | grep -E \'^v(0|[0-9]+)\\.(0|[0-9]+)\\.(0|[0-9]+)\$\' | head -n 1'
                     ).trim().substring(1)
-
-                    def parts = LATEST_VERSION.tokenize('.')
-
-                    def major = parts[0].toInteger()
-                    def minor = parts[1].toInteger()
-                    def patch = parts[2].toInteger()
-
-                    if (env.BRANCH_NAME == 'develop') {
-                        minor = minor + 1
-                    } else {
-                        patch = patch + 1
-                    }
-
-                    env.RELEASE_VERSION = "${major}.${minor}.${patch}"
                 }
             }
         }
@@ -121,19 +107,29 @@ pipeline {
         stage('Release') {
             steps {
                 script {
+                    def parts = LATEST_VERSION.tokenize('.')
+
+                    def major = parts[0].toInteger()
+                    def minor = parts[1].toInteger()
+                    def patch = parts[2].toInteger()
+
                     if (env.BRANCH_NAME == 'develop') {
-                        env.MERGE_BRANCH = 'release'
+                        env.MERGE_BRANCH = 'origin/release'
+                        minor = minor + 1
                     } else {
-                        env.MERGE_BRANCH = 'hotfix'
+                        env.MERGE_BRANCH = 'origin/hotfix'
+                        patch = patch + 1
                     }
+
+                    env.RELEASE_VERSION = "${major}.${minor}.${patch}"
                 }
 
                 sh "git checkout master"
                 sh "git merge --no-ff ${MERGE_BRANCH} -m 'RELEASE'"
                 sh "git push origin master"
 
-                sh "git tag ${RELEASE_VERSION}"
-                sh "git push origin ${RELEASE_VERSION}"
+                sh "git tag v${RELEASE_VERSION}"
+                sh "git push origin v${RELEASE_VERSION}"
             }
         }
     }
