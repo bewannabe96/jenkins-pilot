@@ -20,8 +20,21 @@ pipeline {
                     env.LATEST_VERSION = sh(
                         returnStdout: true,
                         script: 'git tag --sort=-v:refname --list | grep -E \'^v(0|[0-9]+)\\.(0|[0-9]+)\\.(0|[0-9]+)\$\' | head -n 1'
-                    ).trim()
-                    env.VERSION = env.LATEST_VERSION
+                    ).trim().substring(1)
+
+                    def parts = LATEST_VERSION.tokenize('.')
+
+                    def major = parts[0].toInteger()
+                    def minor = parts[1].toInteger()
+                    def patch = parts[2].toInteger()
+
+                    if (env.BRANCH_NAME == 'develop') {
+                        minor = minor + 1
+                    } else {
+                        patch = patch + 1
+                    }
+
+                    env.RELEASE_VERSION = "${major}.${minor}.${patch}"
                 }
             }
         }
@@ -33,7 +46,7 @@ pipeline {
                         returnStdout: true,
                         script: 'git rev-parse --short HEAD'
                     ).trim()
-                    env.CI_TAG = "${LATEST_VERSION}-ci.${CI_SHORT_HASH}"
+                    env.CI_TAG = "v${LATEST_VERSION}-ci.${CI_SHORT_HASH}"
                 }
 
                 sh "git tag ${CI_TAG}"
@@ -75,7 +88,7 @@ pipeline {
                         returnStdout: true,
                         script: 'git rev-parse --short HEAD'
                     ).trim()
-                    env.RC_TAG = "${LATEST_VERSION}-rc.${RC_SHORT_HASH}"
+                    env.RC_TAG = "v${LATEST_VERSION}-rc.${RC_SHORT_HASH}"
                 }
 
                 sh "git tag ${RC_TAG}"
