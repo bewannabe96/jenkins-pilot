@@ -28,6 +28,7 @@ pipeline {
 
                     if (env.BRANCH_NAME == 'develop') {
                         minor = minor + 1
+                        patch = 0
                     } else {
                         patch = patch + 1
                     }
