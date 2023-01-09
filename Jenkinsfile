@@ -21,20 +21,6 @@ pipeline {
                         returnStdout: true,
                         script: 'git tag --sort=-v:refname --list | grep -E \'^v(0|[0-9]+)\\.(0|[0-9]+)\\.(0|[0-9]+)\$\' | head -n 1'
                     ).trim().substring(1)
-
-                    def parts = LATEST_VERSION.tokenize('.')
-
-                    def major = parts[0].toInteger()
-                    def minor = parts[1].toInteger()
-                    def patch = parts[2].toInteger()
-
-                    if (env.BRANCH_NAME == 'develop') {
-                        minor = minor + 1
-                    } else {
-                        patch = patch + 1
-                    }
-
-                    env.RELEASE_VERSION = "${major}.${minor}.${patch}"
                 }
             }
         }
@@ -51,6 +37,7 @@ pipeline {
 
                 sh "git tag ${CI_TAG}"
                 sh "git push origin ${CI_TAG}"
+                echo "${CI_TAG}"
             }
 
         }
@@ -93,6 +80,7 @@ pipeline {
 
                 sh "git tag ${RC_TAG}"
                 sh "git push origin ${RC_TAG}"
+                echo "${RC_TAG}"
             }
         }
 
@@ -121,11 +109,21 @@ pipeline {
         stage('Release') {
             steps {
                 script {
+                    def parts = LATEST_VERSION.tokenize('.')
+
+                    def major = parts[0].toInteger()
+                    def minor = parts[1].toInteger()
+                    def patch = parts[2].toInteger()
+
                     if (env.BRANCH_NAME == 'develop') {
                         env.MERGE_BRANCH = 'release'
+                        minor = minor + 1
                     } else {
                         env.MERGE_BRANCH = 'hotfix'
+                        patch = patch + 1
                     }
+
+                    env.RELEASE_VERSION = "${major}.${minor}.${patch}"
                 }
 
                 sh "git checkout master"
