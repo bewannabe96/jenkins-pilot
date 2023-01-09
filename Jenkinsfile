@@ -3,8 +3,10 @@ pipeline {
 
     environment {
         AWS_ACCOUNT_ID      = 742627718059
-        ECR_REGION          = "ap-northeast-2"
-        DOCKER_IMAGE_REPO   = "test"
+
+        ECR_REGION          = "us-east-1"
+        DOCKER_IMAGE_REPO   = "ourspaceapp/daytrip-web"
+        DOCKER_IMAGE_URI    = "${AWS_ACCOUNT_ID}.dkr.ecr.${ECR_REGION}.amazonaws.com/${DOCKER_IMAGE_REPO}"
     }
 
     stages{
@@ -65,11 +67,11 @@ pipeline {
             steps {
                 script {
                     env.DOCKER_TAG = "${TAG}"
-                    env.DOCKER_IMAGE_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${ECR_REGION}.amazonaws.com/${DOCKER_IMAGE_REPO}:${DOCKER_TAG}"
                 }
 
-                // sh "docker build -t ${DOCKER_IMAGE_REPO} ."
-                // sh "docker tag ${DOCKER_IMAGE_REPO} ${DOCKER_IMAGE_URI}"
+                sh "docker build -t ${DOCKER_IMAGE_REPO} ."
+                sh "docker tag ${DOCKER_IMAGE_REPO} ${DOCKER_IMAGE_URI}:${DOCKER_TAG}"
+                sh "docker push ${DOCKER_IMAGE_URI}:${DOCKER_TAG}"
             }
         }
 
@@ -85,11 +87,9 @@ pipeline {
             }
 
             steps {
-                script {
-                    sh "git checkout release"
-                    sh "git merge --no-ff ${GIT_TAG} -m 'STAGED'"
-                    sh "git push origin release"
-                }
+                sh "git checkout release"
+                sh "git merge --no-ff ${GIT_TAG} -m 'STAGED'"
+                sh "git push origin release"
 
                 script {
                     def hash = sh(
@@ -104,6 +104,9 @@ pipeline {
                 sh "git tag ${GIT_TAG}"
                 sh "git push origin ${GIT_TAG}"
 
+                sh "docker tag ${DOCKER_IMAGE_URI}:${DOCKER_TAG} ${DOCKER_IMAGE_URI}:stage"
+                sh "docker push ${DOCKER_IMAGE_URI}:stage"
+
                 echo "TODO:Deploy"
             }
         }
@@ -116,17 +119,20 @@ pipeline {
 
         stage('Release') {
             steps {
-                script {
-                    env.RELEASE_TAG = "${VERSION}"
-                    env.RELEASE_GIT_TAG = "v${RELEASE_TAG}"
-                }
-
                 sh "git checkout master"
                 sh "git merge --no-ff ${GIT_TAG} -m 'RELEASE'"
                 sh "git push origin master"
 
-                sh "git tag ${RELEASE_GIT_TAG}"
-                sh "git push origin ${RELEASE_GIT_TAG}"
+                script {
+                    env.TAG = "${VERSION}"
+                    env.GIT_TAG = "v${TAG}"
+                }
+
+                sh "git tag ${GIT_TAG}"
+                sh "git push origin ${GIT_TAG}"
+
+                sh "docker tag ${DOCKER_IMAGE_URI}:${DOCKER_TAG} ${DOCKER_IMAGE_URI}:latest"
+                sh "docker push ${DOCKER_IMAGE_URI}:latest"
             }
         }
 
