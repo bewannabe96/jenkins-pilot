@@ -114,10 +114,10 @@ pipeline {
                     def patch = parts[2].toInteger()
 
                     if (env.BRANCH_NAME == 'develop') {
-                        env.MERGE_BRANCH = 'release'
+                        env.MERGE_BRANCH = 'origin/release'
                         minor = minor + 1
                     } else {
-                        env.MERGE_BRANCH = 'hotfix'
+                        env.MERGE_BRANCH = 'origin/hotfix'
                         patch = patch + 1
                     }
 
