@@ -37,8 +37,8 @@ pipeline {
                     env.DOCKER_IMAGE_REPO = "${AWS_ACCOUNT_ID}.dkr.ecr.${ECR_REGION}.amazonaws.com/${DOCKER_IMAGE}:${DOCKER_TAG}"
                 }
 
-                sh "docker build -t ${DOCKER_IMAGE} ."
-                sh "docker tag ${DOCKER_IMAGE} ${DOCKER_IMAGE_REPO}"
+                // sh "docker build -t ${DOCKER_IMAGE} ."
+                // sh "docker tag ${DOCKER_IMAGE} ${DOCKER_IMAGE_REPO}"
             }
         }
 
