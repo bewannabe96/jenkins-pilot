@@ -17,10 +17,22 @@ pipeline {
         stage('Version') {
             steps {
                 script {
-                    env.LATEST_VERSION = sh(
+                    def parts = sh(
                         returnStdout: true,
                         script: 'git tag --sort=-v:refname --list | grep -E \'^v(0|[0-9]+)\\.(0|[0-9]+)\\.(0|[0-9]+)\$\' | head -n 1'
-                    ).trim().substring(1)
+                    ).trim().substring(1).tokenize('.')
+
+                    def major = parts[0].toInteger()
+                    def minor = parts[1].toInteger()
+                    def patch = parts[2].toInteger()
+
+                    if (env.BRANCH_NAME == 'develop') {
+                        minor = minor + 1
+                    } else {
+                        patch = patch + 1
+                    }
+
+                    env.VERSION = "${major}.${minor}.${patch}"
                 }
             }
         }
@@ -34,9 +46,9 @@ pipeline {
                     ).trim()
 
                     if (env.BRANCH_NAME == 'develop') {
-                        env.TAG = "${LATEST_VERSION}-ci.${hash}"
+                        env.TAG = "${VERSION}-ci.${hash}"
                     } else {
-                        env.TAG = "${LATEST_VERSION}-qfe.${hash}"
+                        env.TAG = "${VERSION}-qfe.${hash}"
                     }
 
                     env.GIT_TAG = "v${TAG}"
@@ -84,7 +96,7 @@ pipeline {
                         script: 'git rev-parse --short HEAD'
                     ).trim()
 
-                    env.TAG = "${LATEST_VERSION}-rc.${hash}"
+                    env.TAG = "${VERSION}-rc.${hash}"
                     env.GIT_TAG = "v${TAG}"
                 }
 
@@ -104,21 +116,7 @@ pipeline {
         stage('Release') {
             steps {
                 script {
-                    def parts = LATEST_VERSION.tokenize('.')
-
-                    def major = parts[0].toInteger()
-                    def minor = parts[1].toInteger()
-                    def patch = parts[2].toInteger()
-
-                    if (env.BRANCH_NAME == 'develop') {
-                        env.MERGE_BRANCH = 'origin/release'
-                        minor = minor + 1
-                    } else {
-                        env.MERGE_BRANCH = 'origin/hotfix'
-                        patch = patch + 1
-                    }
-
-                    env.RELEASE_TAG = "${major}.${minor}.${patch}"
+                    env.RELEASE_TAG = "${VERSION}"
                     env.RELEASE_GIT_TAG = "v${RELEASE_TAG}"
                 }
 
