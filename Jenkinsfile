@@ -21,6 +21,14 @@ pipeline {
                         returnStdout: true,
                         script: 'git tag --sort=-v:refname --list | grep -E \'^v(0|[0-9]+)\\.(0|[0-9]+)\\.(0|[0-9]+)\$\' | head -n 1'
                     ).trim()
+                    env.VERSION = env.LATEST_VERSION
+                }
+            }
+        }
+
+        stage('Integrate') {
+            steps {
+                script {
                     env.CI_SHORT_HASH = sh(
                         returnStdout: true,
                         script: 'git rev-parse --short HEAD'
@@ -31,6 +39,7 @@ pipeline {
                 sh "git tag ${CI_TAG}"
                 sh "git push origin ${CI_TAG}"
             }
+
         }
 
         stage('Build') {
@@ -98,7 +107,20 @@ pipeline {
 
         stage('Release') {
             steps {
-                echo "Releasing..."
+                script {
+                    if (env.BRANCH_NAME == 'develop') {
+                        env.MERGE_BRANCH = 'release'
+                    } else {
+                        env.MERGE_BRANCH = 'hotfix'
+                    }
+                }
+
+                sh "git checkout master"
+                sh "git merge --no-ff ${MERGE_BRANCH} -m 'RELEASE'"
+                sh "git push origin master"
+
+                sh "git tag ${RELEASE_VERSION}"
+                sh "git push origin ${RELEASE_VERSION}"
             }
         }
     }
