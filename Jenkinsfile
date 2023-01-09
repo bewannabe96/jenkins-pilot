@@ -34,14 +34,16 @@ pipeline {
                     ).trim()
 
                     if (env.BRANCH_NAME == 'develop') {
-                        env.TAG = "v${LATEST_VERSION}-ci.${hash}"
+                        env.TAG = "${LATEST_VERSION}-ci.${hash}"
                     } else {
-                        env.TAG = "v${LATEST_VERSION}-qfe.${hash}"
+                        env.TAG = "${LATEST_VERSION}-qfe.${hash}"
                     }
+
+                    env.GIT_TAG = "v${TAG}"
                 }
 
-                sh "git tag ${TAG}"
-                sh "git push origin ${TAG}"
+                sh "git tag ${GIT_TAG}"
+                sh "git push origin ${GIT_TAG}"
             }
 
         }
@@ -72,7 +74,7 @@ pipeline {
             steps {
                 script {
                     sh "git checkout release"
-                    sh "git merge --no-ff ${TAG} -m 'STAGED'"
+                    sh "git merge --no-ff ${GIT_TAG} -m 'STAGED'"
                     sh "git push origin release"
                 }
 
@@ -82,11 +84,12 @@ pipeline {
                         script: 'git rev-parse --short HEAD'
                     ).trim()
 
-                    env.TAG = "v${LATEST_VERSION}-rc.${hash}"
+                    env.TAG = "${LATEST_VERSION}-rc.${hash}"
+                    env.GIT_TAG = "v${TAG}"
                 }
 
-                sh "git tag ${TAG}"
-                sh "git push origin ${TAG}"
+                sh "git tag ${GIT_TAG}"
+                sh "git push origin ${GIT_TAG}"
 
                 echo "TODO:Deploy"
             }
@@ -115,15 +118,16 @@ pipeline {
                         patch = patch + 1
                     }
 
-                    env.RELEASE_VERSION = "${major}.${minor}.${patch}"
+                    env.RELEASE_TAG = "${major}.${minor}.${patch}"
+                    env.RELEASE_GIT_TAG = "v${RELEASE_TAG}"
                 }
 
                 sh "git checkout master"
-                sh "git merge --no-ff ${TAG} -m 'RELEASE'"
+                sh "git merge --no-ff ${GIT_TAG} -m 'RELEASE'"
                 sh "git push origin master"
 
-                sh "git tag v${RELEASE_VERSION}"
-                sh "git push origin v${RELEASE_VERSION}"
+                sh "git tag ${RELEASE_GIT_TAG}"
+                sh "git push origin ${RELEASE_GIT_TAG}"
             }
         }
 
